@@ -2,7 +2,7 @@
 
 ## Intro
 
-This is a program that imitates the ping function in Windows OS. The cede skeleton is from book 'Computer Network Top Down Approach', I took part of code here([Click this for more infomation](https://github.com/moranzcw/Computer-Networking-A-Top-Down-Approach-NOTES)).
+This is a program that imitates the ping function in Windows OS. The cede skeleton is from book 'Computer Network Top Down Approach', I took part of code here([Click this for more information](https://github.com/moranzcw/Computer-Networking-A-Top-Down-Approach-NOTES)).
 
 ## Instruction
 
