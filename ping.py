@@ -89,10 +89,12 @@ def doOnePing(destAddr, ID, sequence, timeout, size):
     return delay
 
 
-def ping(host, timeout=1, n=4, size=8, signal=0):
+def ping(host, timeout=1, n=4, size=8, signal=0, a_count=0):
     # timeout=1 means: If one second goes by without a reply from the server,
     # the client assumes that either the client’s ping or the server’s pong is lost
     dest = socket.gethostbyname(host)
+    if a_count == 1:
+        dest_name = socket.gethostbyaddr(host)[0]
 
     # Send ping requests to a server separated by approximately one second
 
@@ -112,7 +114,7 @@ def ping(host, timeout=1, n=4, size=8, signal=0):
             send_times = send_times + 1
             times = times + 1
             if index == 0 and result:
-                print("正在 Ping " + host + " [" + dest + "] 具有 " + str(result[2]) + " 字节的数据:")
+                print("正在 Ping " + (host if a_count == 0 else dest_name) + " [" + dest + "] 具有 " + str(result[2]) + " 字节的数据:")
             if not result:
                 print("请求超时。")
                 loss += 1
@@ -158,7 +160,9 @@ if __name__ == '__main__':
     parser.add_argument("input", help="input destination network URL")
     parser.add_argument("-n", help="numbers of ICMP request to send (default: 4)", default=4)
     parser.add_argument("-l", help="select data size(8 bytes least)", default=8)
-    parser.add_argument("-t", help="ping destination while press control c", default=0)
-    parser.add_argument("-w", help="set receive time(ms)", default="1000")
+    parser.add_argument("-t", help="ping destination in an infinite loop while press control c",
+                        action='count', default=0)
+    parser.add_argument("-w", help="set receive timeout time(ms)", default="1000")
+    parser.add_argument("-a", help="parse ip address into hostname", action='count', default=0)
     args = parser.parse_args()
-    ping(args.input, n=int(args.n), size=int(args.l), signal=int(args.t), timeout=eval(args.w)/1000)
+    ping(args.input, n=int(args.n), size=int(args.l), signal=int(args.t), timeout=eval(args.w)/1000, a_count=args.a)
