@@ -35,43 +35,6 @@ def checksum(packet):
     return answer
 
 
-def receive_packet(my_socket, ID, sequence, dest_addr, timeout):
-    """
-    接收一个ICMP reply数据包
-    :param my_socket: 接收数据包的套接字
-    :param ID: 进程ID
-    :param sequence: 序号
-    :param dest_addr: 目的主机
-    :param timeout: 超时时间
-    :return: 延迟delay, 生存时间TTL, 数据段大小data_size
-    """
-    time_left = timeout
-
-    while 1:
-        start_select = time.time()
-        isAble = select.select([my_socket], [], [], time_left)
-        select_time = (time.time() - start_select)
-        if not isAble[0]:  # 超时
-            return None
-
-        timeReceived = time.time()
-        recPacket, addr = my_socket.recvfrom(2048)
-
-        header = recPacket[20: 28]
-        type, code, c_sum, packetID, sequence = struct.unpack("!bbHHh", header)
-        if type == 0 and packetID == ID:  # ICMP reply报文的type为0
-            byte_in_double = struct.calcsize("!d")
-            data_size = len(recPacket[28:])
-            timeSent = struct.unpack("!d", recPacket[28: 28 + byte_in_double])[0]
-            delay = timeReceived - timeSent
-            ttl = ord(struct.unpack("!c", recPacket[8:9])[0].decode())
-            return delay, ttl, data_size
-
-        time_left = time_left - select_time
-        if time_left <= 0:
-            return None
-
-
 def send_packet(my_socket, ID, sequence, dest_addr, size):
     """
     发送ICMP request数据包
@@ -97,6 +60,40 @@ def send_packet(my_socket, ID, sequence, dest_addr, size):
     packet = header + data
 
     my_socket.sendto(packet, (dest_addr, 1))
+
+
+def receive_packet(my_socket, ID, sequence, dest_addr, timeout):
+    """
+    接收一个ICMP reply数据包
+    :param my_socket: 接收数据包的套接字
+    :param ID: 进程ID
+    :param sequence: 序号
+    :param dest_addr: 目的主机
+    :param timeout: 超时时间
+    :return: 延迟delay, 生存时间TTL, 数据段大小data_size
+    """
+    while 1:
+        start_select = time.time()
+        isAble = select.select([my_socket], [], [], timeout)
+        select_time = (time.time() - start_select)
+        if not isAble[0]:  # 超时
+            return None
+
+        timeReceived = time.time()
+        recPacket, addr = my_socket.recvfrom(2048)
+
+        header = recPacket[20: 28]
+        type, code, c_sum, packetID, sequence = struct.unpack("!bbHHh", header)
+        if type == 0 and packetID == ID:  # ICMP reply报文的type为0
+            byte_in_double = struct.calcsize("!d")
+            data_size = len(recPacket[28:])
+            timeSent = struct.unpack("!d", recPacket[28: 28 + byte_in_double])[0]
+            delay = timeReceived - timeSent
+            ttl = ord(struct.unpack("!c", recPacket[8:9])[0].decode())
+            return delay, ttl, data_size
+
+        if timeout - select_time <= 0:
+            return None
 
 
 def do_ping(dest_addr, ID, sequence, timeout, size):
@@ -200,7 +197,7 @@ if __name__ == '__main__':
     parser.add_argument("input", help="input destination network URL")
     parser.add_argument("-n", help="numbers of ICMP request to send (default: 4)", default=4)
     parser.add_argument("-l", help="select data size(8 bytes least)", default=8)
-    parser.add_argument("-t", help="ping destination in an infinite loop while press control c",
+    parser.add_argument("-t", help="ping destination in an infinite loop while press Ctrl+C",
                         action='count', default=0)
     parser.add_argument("-w", help="set receive timeout time(ms)", default="1000")
     parser.add_argument("-a", help="parse ip address into hostname", action='count', default=0)
