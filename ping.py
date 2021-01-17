@@ -194,12 +194,12 @@ def ping(host, timeout=1, n=4, size=8, signal=0, a_count=0):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("input", help="input destination network URL")
-    parser.add_argument("-n", help="numbers of ICMP request to send (default: 4)", default=4)
-    parser.add_argument("-l", help="select data size(8 bytes least)", default=8)
+    parser.add_argument("input", help="input destination network URL/IP Address")
+    parser.add_argument("-n", help="numbers of ICMP request packets to send (default: 4)", default=4)
+    parser.add_argument("-l", help="select packet's data segment size(8 bytes least)", default=8)
     parser.add_argument("-t", help="ping destination in an infinite loop while press Ctrl+C",
                         action='count', default=0)
-    parser.add_argument("-w", help="set receive timeout time(ms)", default="1000")
+    parser.add_argument("-w", help="set ICMP receive timeout time(ms)", default="1000")
     parser.add_argument("-a", help="parse ip address into hostname", action='count', default=0)
     args = parser.parse_args()
     ping(args.input, n=int(args.n), size=int(args.l), signal=int(args.t), timeout=eval(args.w)/1000, a_count=args.a)
